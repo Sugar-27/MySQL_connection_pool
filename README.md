@@ -16,3 +16,6 @@ MySQL数据库编程、单例模式、queue队列容器、C++11多线程编程�
 * 最大空闲时间（maxIdleTime）：当访问MySQL的并发请求多了以后，连接池里面的连接数量会动态 增加，上限是maxSize个，当这些连接用完再次归还到连接池当中。如果在指定的maxIdleTime里面， 这些新增加的连接都没有被再次使用过，那么新增加的这些连接资源就要被回收掉，只需要保持初始连 接量initSize个连接就可以了。
 
 * 连接超时时间（connectionTimeout）：当MySQL的并发请求量过大，连接池中的连接数量已经到达 maxSize了，而此时没有空闲的连接可供使用，那么此时应用从连接池获取连接无法成功，它通过阻塞 的方式获取连接的时间如果超过connectionTimeout时间，那么获取连接失败，无法访问数据库。
+
+## 基本操作：
+执行`create_sql.sql`中的SQL语句创建MySQL数据库，然后编译`test.cpp`，编译语句`g++ test.cpp -o test -lmysqlclient`，编译完成后使用root用户执行`test`程序，再次查询表chat.user可以看到数据增加了一行。
