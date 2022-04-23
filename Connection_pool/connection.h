@@ -1,5 +1,6 @@
 /* 遵循RAII标准，对MySQL连接进行封装*/
-
+#ifndef CONNECTION_H
+#define CONNECTION_H
 #include <mysql/mysql.h>
 #include <ctime>
 #include <string>
@@ -31,3 +32,5 @@ class Connection {
    private:
     MYSQL* _conn;
 };
+
+#endif
