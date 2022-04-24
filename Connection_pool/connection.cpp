@@ -3,7 +3,7 @@
 // 初始化数据库连接
 Connection::Connection() {
     _conn = mysql_init(nullptr);
-    LOG("初始化成功");
+    // LOG("初始化成功");
 }
 
 // 关闭数据库连接
@@ -21,6 +21,7 @@ bool Connection::connect(string ip,
     MYSQL* p =
         mysql_real_connect(_conn, ip.c_str(), user.c_str(), password.c_str(),
                            dbname.c_str(), port, nullptr, 0);
+    if (p == nullptr) LOG("连接失败");
     return p != nullptr;
 }
 
