@@ -1,4 +1,3 @@
-/* 遵循RAII标准，对MySQL连接进行封装*/
 #ifndef CONNECTION_H
 #define CONNECTION_H
 #include <mysql/mysql.h>
@@ -6,6 +5,7 @@
 #include <string>
 #include <iostream>
 
+/* 宏定义，用于打印日志 */
 #define LOG(str) std::cout << __FILE__ << ":" << __LINE__ << " " << __TIMESTAMP__ << " : " << str << std::endl;
 
 using std::string;
@@ -13,6 +13,7 @@ using std::cout;
 using std::cin;
 using std::endl;
 
+/* 遵循RAII标准，对MySQL连接进行封装 */
 class Connection {
    public:
     // 初始化连接
