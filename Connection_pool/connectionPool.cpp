@@ -59,12 +59,17 @@ ConnectionPool::ConnectionPool() : m_port(3306) {
         Connection* p = new Connection();
         p->connect(m_ip, m_user, m_password, m_dbname);
         // p->connect("localhost", "root", "root", "chat");
+        p->refresh_alive_time();
         m_connection_queue.push(p);
         m_connection_cnt++;
     }
     // 启动一个生产者线程
     thread produce(std::bind(&ConnectionPool::produce_connection, this));
     produce.detach();
+    // 启动一个定时线程，起到定时器的作用，时间一到对队列进行扫描，如果有超时的就扔出去
+    thread scanner_connection_time(
+        std::bind(&ConnectionPool::scan_connection_time, this));
+    scanner_connection_time.detach();
 }
 
 void ConnectionPool::print() {
@@ -97,6 +102,7 @@ void ConnectionPool::produce_connection() {
         Connection* p = new Connection();
         p->connect(m_ip, m_user, m_password, m_dbname, m_port);
         // p->connect("localhost", "root", "root", "chat");
+        p->refresh_alive_time();
         m_connection_queue.push(p);
         ++m_connection_cnt;
         // 生产完毕，通知可以使用
@@ -104,11 +110,35 @@ void ConnectionPool::produce_connection() {
     }
 }
 
+// 定时器线程的处理函数
+void ConnectionPool::scan_connection_time() {
+    // 扫描队列里全部的节点，将超过最大允许存活时间的去掉
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::seconds(m_max_idletime));
+        std::unique_lock<std::mutex> lock(m_queue_mutex);
+        while (m_connection_cnt) {
+            Connection* p = m_connection_queue.front();
+            cout << p->get_alive_time() << endl;
+            if (p->get_alive_time() > m_max_idletime * 100 &&
+                m_connection_cnt > m_init_size / 2 + 1) {
+                // std::cout << "删除了一个连接\n";
+                m_connection_queue.pop();
+                --m_connection_cnt;
+                delete p;
+            } else {
+                // 对头的连接没有超时则后面的肯定不会超时
+                break;
+            }
+        }
+    }
+}
+
 // 消费者线程用来获取连接的函数
 std::shared_ptr<Connection> ConnectionPool::get_connection() {
     std::unique_lock<std::mutex> lock(m_queue_mutex);
     while (m_connection_queue.empty()) {
-        // 等待队列不空
+        // 等待队列为空
+        cv.notify_all();  // 让生产队列生产一个连接出来
         if (std::cv_status::timeout ==
             cv.wait_for(lock, std::chrono::milliseconds(m_timeout))) {
             // 如果不是被唤醒，而是因为超时了
@@ -122,6 +152,7 @@ std::shared_ptr<Connection> ConnectionPool::get_connection() {
     std::shared_ptr<Connection> p(
         m_connection_queue.front(), [this](Connection* tmp) {
             std::unique_lock<std::mutex> lock(m_queue_mutex);
+            tmp->refresh_alive_time();
             m_connection_queue.push(tmp);
         });
     m_connection_queue.pop();

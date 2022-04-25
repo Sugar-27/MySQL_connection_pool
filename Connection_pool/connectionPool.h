@@ -48,6 +48,7 @@ class ConnectionPool {
     ConnectionPool();    // 单例模式，构造函数私有
     bool deal_config();  // 处理配置文件，从配置文件加载配置项
     void produce_connection();  // 生产者生产一个连接
+    void scan_connection_time(); // 定时器的处理函数
 };
 
 #endif
