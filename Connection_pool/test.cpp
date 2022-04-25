@@ -25,7 +25,9 @@ int main() {
 
     // 建立连接池，使用一个连接测试连接池是否好用
     ConnectionPool* tmp = ConnectionPool::get_pool();
-    for (int i = 0; i < 5; ++i) {
+    string stat;
+    while (std::cin >> stat) {
+        if (stat == "quit") break;
         std::shared_ptr<Connection> p = tmp->get_connection();
         p->update(sql);
     }
