@@ -35,7 +35,7 @@ class Connection {
     // 刷新一下起始的空闲时间点
     void refresh_alive_time() { _alive_time = clock(); }
     // 返回存活的时间
-    clock_t get_alive_time() {
+    clock_t get_alive_time() const {
         // 存活的时间即：当前的时间-起始的时间点
         return clock() - _alive_time;
     }
